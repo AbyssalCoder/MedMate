@@ -9,47 +9,57 @@ const STORAGE_KEYS = {
   CHAT_HISTORY: 'arogya_chat_history',
 };
 
-// Backend simulator with user registration
+// Backend with IndexedDB
 const Backend = {
-  register: ({ name, workerId, pin }) => {
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '{}');
-    
-    if (users[workerId]) {
-      return { success: false, message: 'Worker ID already exists' };
+  async register({ name, workerId, pin }) {
+    try {
+      await MedMateDB.addUser({ name, workerId, pin });
+      return { success: true, message: '✨ Registration successful! You can now login.' };
+    } catch (error) {
+      return { success: false, message: '❌ User ID already exists. Please choose another.' };
     }
-
-    users[workerId] = { name, pin, createdAt: new Date().toISOString() };
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-    
-    return { success: true, message: 'Registration successful!' };
   },
 
-  login: ({ workerId, pin }) => {
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '{}');
-    const user = users[workerId];
-
-    if (!user || user.pin !== pin) {
-      return { success: false, message: 'Invalid Worker ID or PIN' };
+  async login({ workerId, pin }) {
+    try {
+      const user = await MedMateDB.getUser(workerId);
+      if (!user) {
+        return { success: false, message: '❌ User ID not found. Please register first.' };
+      }
+      if (user.pin !== pin) {
+        return { success: false, message: '❌ Incorrect PIN. Please try again.' };
+      }
+      
+      // Update last login time
+      await MedMateDB.updateLastLogin(workerId);
+      
+      // Create session
+      const session = await MedMateDB.createSession(workerId, user.name);
+      
+      return { success: true, session: { workerId, name: user.name } };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, message: '❌ Login failed. Please try again.' };
     }
-
-    const session = {
-      workerId,
-      name: user.name,
-      loginAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
-    return { success: true, session };
   },
 
-  logout: () => {
-    localStorage.removeItem(STORAGE_KEYS.SESSION);
-    localStorage.removeItem(STORAGE_KEYS.CHAT_HISTORY);
+  async getSession() {
+    try {
+      const session = await MedMateDB.getActiveSession();
+      return session ? { workerId: session.workerId, name: session.name } : null;
+    } catch (error) {
+      console.error('Session error:', error);
+      return null;
+    }
   },
 
-  getSession: () => {
-    const raw = localStorage.getItem(STORAGE_KEYS.SESSION);
-    return raw ? JSON.parse(raw) : null;
+  async logout() {
+    try {
+      await MedMateDB.clearSessions();
+      console.log('✅ Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   },
 
   saveChat: (messages) => {
@@ -150,15 +160,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Register Handler
-  registerForm.addEventListener('submit', (e) => {
+  registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('register-name').value.trim();
     const workerId = document.getElementById('register-id').value.trim();
     const pin = document.getElementById('register-pin').value.trim();
 
-    const result = Backend.register({ name, workerId, pin });
+    const result = await Backend.register({ name, workerId, pin });
     if (result.success) {
-      alert(result.message + ' Please login now.');
+      alert(result.message);
       showLoginBtn.click();
       registerForm.reset();
     } else {
@@ -167,12 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Login Handler
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const workerId = document.getElementById('login-id').value.trim();
     const pin = document.getElementById('login-pin').value.trim();
 
-    const result = Backend.login({ workerId, pin });
+    const result = await Backend.login({ workerId, pin });
     if (result.success) {
       enterWorkspace(result.session);
     } else {
@@ -181,12 +191,52 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Logout
-  logoutBtn.addEventListener('click', () => {
+  logoutBtn.addEventListener('click', async () => {
     if (confirm('Are you sure you want to logout?')) {
-      Backend.logout();
+      await Backend.logout();
       location.reload();
     }
   });
+
+  // Clear Chat
+  const clearChatBtn = document.getElementById('clear-chat-btn');
+  if (clearChatBtn) {
+    clearChatBtn.addEventListener('click', () => {
+      if (confirm('🗑️ Clear all chat history and start fresh?')) {
+        // Clear conversation history in Gemini
+        if (typeof GeminiAI !== 'undefined') {
+          GeminiAI.resetConversation();
+        }
+        
+        // Clear chat messages from UI
+        chatHistory = [];
+        conversationContext = [];
+        localStorage.removeItem('chatHistory');
+        
+        // Clear the chat display
+        chatMessages.innerHTML = '';
+        
+        // Show welcome message again
+        appendMessage({
+          role: 'assistant',
+          content: `<p class="text-slate-800 text-lg"><b>Hey there! 👋 I'm MedMate, your personal health buddy!</b></p>
+                    <p class="mt-2 text-slate-700">I'm here to help you with:</p>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                      <div class="bg-white/60 rounded-lg p-2">💙 <b>Mental Health</b></div>
+                      <div class="bg-white/60 rounded-lg p-2">🩺 <b>Symptoms</b></div>
+                      <div class="bg-white/60 rounded-lg p-2">📸 <b>Skin Analysis</b></div>
+                      <div class="bg-white/60 rounded-lg p-2">📋 <b>Lab Reports</b></div>
+                      <div class="bg-white/60 rounded-lg p-2">👨‍⚕️ <b>Find Doctors</b></div>
+                      <div class="bg-white/60 rounded-lg p-2">🏥 <b>Hospitals</b></div>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-600">💬 Just click a button below or type your question!</p>
+                    <p class="mt-2 text-xs text-red-600"><b>🚨 Emergency? Call 108 immediately!</b></p>`
+        });
+        
+        console.log('✅ Chat cleared! Starting fresh conversation.');
+      }
+    });
+  }
 
   // Enter Workspace
   function enterWorkspace(session) {
@@ -395,9 +445,14 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
-  // Initialize
-  const session = Backend.getSession();
-  if (session) {
-    enterWorkspace(session);
-  }
+  // Initialize - Check for existing session
+  (async () => {
+    const session = await Backend.getSession();
+    if (session) {
+      console.log('✅ Found existing session, auto-logging in...');
+      enterWorkspace(session);
+    } else {
+      console.log('👋 No active session, showing login page');
+    }
+  })();
 });

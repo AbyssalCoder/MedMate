@@ -1,7 +1,7 @@
 // Real AI Integration with Google Gemini API
 const GeminiAI = {
   apiKey: 'AIzaSyAiF-X7LEqcN_9_79-V_BqLgz8ZH9genb8', // Your working API key
-  conversationHistory: [],
+  conversationHistory: [], // Stores the full conversation
   
   // Initialize system prompt for healthcare context
   systemPrompt: `You are MedMate, a friendly AI health companion helping everyday people with their health questions.
@@ -39,19 +39,30 @@ Keep it brief, friendly, emoji-filled, and helpful! Make health advice feel less
     try {
       console.log('Calling Gemini API with message:', userMessage);
       
+      // Add user message to conversation history
+      this.conversationHistory.push({
+        role: 'user',
+        parts: [{ text: userMessage }]
+      });
+      
+      // Build the full conversation context
+      const contents = [
+        {
+          role: 'user',
+          parts: [{ text: this.systemPrompt }]
+        },
+        ...this.conversationHistory
+      ];
+      
       const requestBody = {
-        contents: [{
-          parts: [{
-            text: this.systemPrompt + '\n\nUser: ' + userMessage
-          }]
-        }],
+        contents: contents,
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 2048,
         }
       };
       
-      console.log('Request body:', JSON.stringify(requestBody, null, 2));
+      console.log('Conversation history length:', this.conversationHistory.length);
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`, {
         method: 'POST',
@@ -77,6 +88,13 @@ Keep it brief, friendly, emoji-filled, and helpful! Make health advice feel less
       }
       
       const aiResponse = data.candidates[0].content.parts[0].text;
+      
+      // Add AI response to conversation history
+      this.conversationHistory.push({
+        role: 'model',
+        parts: [{ text: aiResponse }]
+      });
+      
       console.log('AI Response:', aiResponse);
       return aiResponse;
 
@@ -135,7 +153,13 @@ Keep it brief, friendly, emoji-filled, and helpful! Make health advice feel less
 
   // Reset conversation (for new topics)
   resetConversation() {
-    // No conversation history needed for stateless calls
+    this.conversationHistory = [];
+    console.log('Conversation history cleared');
+  },
+  
+  // Get conversation context
+  getConversationLength() {
+    return this.conversationHistory.length;
   }
 };
 
