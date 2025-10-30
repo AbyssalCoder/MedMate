@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Arogya Sahayak | AI Care Copilot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 min-h-screen">
+  <main id="app" class="min-h-screen">
+    <!-- AUTH SECTION -->
+    <section id="auth-section" class="min-h-screen flex items-center justify-center p-6">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <h1 class="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2">Arogya Sahayak</h1>
+          <p class="text-slate-600">AI-powered care assistant for health workers</p>
+        </div>
+        
+        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8">
+          <!-- Tab Switcher -->
+          <div class="flex rounded-2xl bg-slate-100 p-1 mb-6">
+            <button id="show-login" class="flex-1 py-2.5 rounded-xl bg-white shadow-sm text-slate-900 font-semibold transition">Login</button>
+            <button id="show-register" class="flex-1 py-2.5 rounded-xl text-slate-500 font-semibold transition">Register</button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="login-form" class="space-y-5">
+            <div>
+              <label for="login-id" class="block text-sm font-semibold text-slate-700 mb-2">Worker ID</label>
+              <input id="login-id" type="text" required placeholder="Enter your worker ID" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+            </div>
+            <div>
+              <label for="login-pin" class="block text-sm font-semibold text-slate-700 mb-2">PIN</label>
+              <input id="login-pin" type="password" required placeholder="Enter your PIN" minlength="4" maxlength="6" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-lg font-bold py-3.5 rounded-xl shadow-lg transition transform hover:scale-[1.02]">Sign in</button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="register-form" class="space-y-5 hidden">
+            <div>
+              <label for="register-name" class="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+              <input id="register-name" type="text" required placeholder="Enter your name" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+            </div>
+            <div>
+              <label for="register-id" class="block text-sm font-semibold text-slate-700 mb-2">Worker ID</label>
+              <input id="register-id" type="text" required placeholder="Choose a unique ID" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+            </div>
+            <div>
+              <label for="register-pin" class="block text-sm font-semibold text-slate-700 mb-2">PIN</label>
+              <input id="register-pin" type="password" required placeholder="Create a PIN" minlength="4" maxlength="6" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-lg font-bold py-3.5 rounded-xl shadow-lg transition transform hover:scale-[1.02]">Create account</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORKSPACE -->
+    <section id="workspace" class="hidden min-h-screen p-4 md:p-6 lg:p-8">
+      <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">Care Command Center</h2>
+            <p class="text-slate-600 mt-1" id="welcome-note"></p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <span class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl font-semibold">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+              </svg>
+              AI Ready
+            </span>
+            <button id="logout-btn" class="inline-flex items-center gap-2 bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2.5 rounded-xl font-semibold transition">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                <path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 006 5.25v13.5a1.5 1.5 0 001.5 1.5h6a1.5 1.5 0 001.5-1.5V15a.75.75 0 011.5 0v3.75a3 3 0 01-3 3h-6a3 3 0 01-3-3V5.25a3 3 0 013-3h6a3 3 0 013 3V9A.75.75 0 0113.5 9V5.25a1.5 1.5 0 00-1.5-1.5h-6zm10.72 4.72a.75.75 0 011.06 0l3 3a.75.75 0 010 1.06l-3 3a.75.75 0 11-1.06-1.06l1.72-1.72H9a.75.75 0 010-1.5h10.94l-1.72-1.72a.75.75 0 010-1.06z" clip-rule="evenodd" />
+              </svg>
+              Logout
+            </button>
+          </div>
+        </header>
+
+        <!-- Main Chat Interface -->
+        <div class="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col" style="height: calc(100vh - 200px);">
+          <!-- Chat Header -->
+          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-indigo-50 to-cyan-50">
+            <div>
+              <h3 class="text-xl font-bold text-slate-900">Unified Chat Assistant</h3>
+              <p class="text-sm text-slate-600">Powered by Google Gemini AI • All features in one place</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700">● Online</span>
+            </div>
+          </div>
+
+          <!-- Messages Area -->
+          <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="chat-messages">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0">A</div>
+              <div class="flex-1 bg-gradient-to-br from-indigo-50 to-cyan-50 border border-indigo-100 rounded-2xl p-4">
+                <p class="text-slate-800"><strong>Welcome!</strong> I'm your Arogya AI assistant. I can help with:</p>
+                <ul class="mt-2 space-y-1 text-sm text-slate-700">
+                  <li>• <strong>AI Therapy</strong> - Mental health support</li>
+                  <li>• <strong>Symptom Analysis</strong> - Triage and recommendations</li>
+                  <li>• <strong>Skin Scans</strong> - Image-based diagnosis</li>
+                  <li>• <strong>Report Analysis</strong> - Lab report interpretation</li>
+                  <li>• <strong>Doctor Referrals</strong> - Find nearby physicians</li>
+                  <li>• <strong>Hospital Finder</strong> - Emergency care locations</li>
+                </ul>
+                <p class="mt-3 text-sm text-slate-600">Type your question or use the quick actions below!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Bar -->
+          <div class="px-6 py-3 border-t border-slate-200 bg-slate-50/50">
+            <div class="flex gap-2 overflow-x-auto pb-2">
+              <button class="quick-action flex-shrink-0 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-md transition transform hover:scale-105" data-action="therapist">💙 AI Therapist</button>
+              <button class="quick-action flex-shrink-0 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl font-semibold shadow-md transition transform hover:scale-105" data-action="symptom">🩺 Symptom Check</button>
+              <button class="quick-action flex-shrink-0 px-4 py-2 bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white rounded-xl font-semibold shadow-md transition transform hover:scale-105" data-action="skin">📸 Skin Scan</button>
+              <button class="quick-action flex-shrink-0 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-semibold shadow-md transition transform hover:scale-105" data-action="report">📋 Report Analysis</button>
+              <button class="quick-action flex-shrink-0 px-4 py-2 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white rounded-xl font-semibold shadow-md transition transform hover:scale-105" data-action="doctor">👨‍⚕️ Need Doctor</button>
+              <button class="quick-action flex-shrink-0 px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white rounded-xl font-semibold shadow-md transition transform hover:scale-105" data-action="hospital">🏥 Hospitals</button>
+            </div>
+          </div>
+
+          <!-- Input Area -->
+          <form id="chat-form" class="px-6 py-4 border-t border-slate-200 flex items-center gap-3 bg-white">
+            <input id="chat-input" type="text" placeholder="Type your message or question..." class="flex-1 border-2 border-slate-300 rounded-2xl px-5 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+            <button type="submit" id="send-btn" class="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+              </svg>
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js?v=5"></script>
+</body>
+</html>
