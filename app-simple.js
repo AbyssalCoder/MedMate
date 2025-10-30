@@ -9,9 +9,15 @@ const STORAGE_KEYS = {
   CHAT_HISTORY: 'arogya_chat_history',
 };
 
-// Backend with IndexedDB
+// Backend with Firebase (with IndexedDB fallback)
 const Backend = {
   async register({ name, workerId, pin }) {
+    // Try Firebase first, fallback to IndexedDB
+    if (typeof FirebaseDB !== 'undefined') {
+      return await FirebaseDB.register({ name, workerId, pin });
+    }
+    
+    // Fallback to IndexedDB
     try {
       await MedMateDB.addUser({ name, workerId, pin });
       return { success: true, message: '✨ Registration successful! You can now login.' };
@@ -21,6 +27,12 @@ const Backend = {
   },
 
   async login({ workerId, pin }) {
+    // Try Firebase first, fallback to IndexedDB
+    if (typeof FirebaseDB !== 'undefined') {
+      return await FirebaseDB.login({ workerId, pin });
+    }
+    
+    // Fallback to IndexedDB
     try {
       const user = await MedMateDB.getUser(workerId);
       if (!user) {
@@ -30,10 +42,7 @@ const Backend = {
         return { success: false, message: '❌ Incorrect PIN. Please try again.' };
       }
       
-      // Update last login time
       await MedMateDB.updateLastLogin(workerId);
-      
-      // Create session
       const session = await MedMateDB.createSession(workerId, user.name);
       
       return { success: true, session: { workerId, name: user.name } };
@@ -44,6 +53,12 @@ const Backend = {
   },
 
   async getSession() {
+    // Try Firebase first, fallback to IndexedDB
+    if (typeof FirebaseDB !== 'undefined') {
+      return await FirebaseDB.getSession();
+    }
+    
+    // Fallback to IndexedDB
     try {
       const session = await MedMateDB.getActiveSession();
       return session ? { workerId: session.workerId, name: session.name } : null;
@@ -54,11 +69,16 @@ const Backend = {
   },
 
   async logout() {
-    try {
-      await MedMateDB.clearSessions();
-      console.log('✅ Logged out successfully');
-    } catch (error) {
-      console.error('Logout error:', error);
+    // Try Firebase first, fallback to IndexedDB
+    if (typeof FirebaseDB !== 'undefined') {
+      await FirebaseDB.logout();
+    } else {
+      try {
+        await MedMateDB.clearSessions();
+        console.log('✅ Logged out successfully');
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
     }
   },
 

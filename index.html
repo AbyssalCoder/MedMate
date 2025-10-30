@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MedMate - Your AI Health Companion</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
   <style>
     @keyframes float {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -241,7 +247,8 @@
   </main>
 
   <script src="database.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="gemini-ai.js?v=60"></script>
-  <script src="app-simple.js?v=65"></script>
+  <script src="app-simple.js?v=70"></script>
 </body>
 </html>
