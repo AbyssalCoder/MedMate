@@ -12,29 +12,27 @@ const STORAGE_KEYS = {
 // Backend with Firebase (with IndexedDB fallback)
 const Backend = {
   async register({ name, workerId, pin }) {
-    // Try Firebase first, fallback to IndexedDB
-    if (typeof FirebaseDB !== 'undefined') {
-      return await FirebaseDB.register({ name, workerId, pin });
-    }
+    console.log('Backend.register called with:', { name, workerId });
     
-    // Fallback to IndexedDB
+    // Always use IndexedDB (Firebase disabled)
     try {
-      await MedMateDB.addUser({ name, workerId, pin });
+      const result = await MedMateDB.addUser({ name, workerId, pin });
+      console.log('MedMateDB.addUser result:', result);
       return { success: true, message: '✨ Registration successful! You can now login.' };
     } catch (error) {
+      console.error('MedMateDB.addUser error:', error);
       return { success: false, message: '❌ User ID already exists. Please choose another.' };
     }
   },
 
   async login({ workerId, pin }) {
-    // Try Firebase first, fallback to IndexedDB
-    if (typeof FirebaseDB !== 'undefined') {
-      return await FirebaseDB.login({ workerId, pin });
-    }
+    console.log('Backend.login called with:', { workerId });
     
-    // Fallback to IndexedDB
+    // Always use IndexedDB (Firebase disabled)
     try {
       const user = await MedMateDB.getUser(workerId);
+      console.log('User found:', user);
+      
       if (!user) {
         return { success: false, message: '❌ User ID not found. Please register first.' };
       }
@@ -43,7 +41,8 @@ const Backend = {
       }
       
       await MedMateDB.updateLastLogin(workerId);
-      const session = await MedMateDB.createSession(workerId, user.name);
+      const sessionData = await MedMateDB.createSession(workerId, user.name);
+      console.log('Session created:', sessionData);
       
       return { success: true, session: { workerId, name: user.name } };
     } catch (error) {
@@ -140,7 +139,13 @@ Please use the quick action buttons below or provide more details about the pati
 };
 
 // Main App Logic
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('🚀 MedMate App Starting...');
+  
+  // Wait for databases to initialize
+  await new Promise(resolve => setTimeout(resolve, 500));
+  console.log('✅ Databases ready');
+  
   // DOM Elements
   const authSection = document.getElementById('auth-section');
   const workspace = document.getElementById('workspace');
@@ -159,6 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let chatHistory = Backend.loadChat();
   let conversationContext = [];
+  
+  console.log('✅ DOM elements loaded');
 
   // Auth Tab Switching
   showLoginBtn.addEventListener('click', () => {
@@ -182,31 +189,53 @@ document.addEventListener('DOMContentLoaded', () => {
   // Register Handler
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('📝 Register form submitted');
+    
     const name = document.getElementById('register-name').value.trim();
     const workerId = document.getElementById('register-id').value.trim();
     const pin = document.getElementById('register-pin').value.trim();
 
-    const result = await Backend.register({ name, workerId, pin });
-    if (result.success) {
-      alert(result.message);
-      showLoginBtn.click();
-      registerForm.reset();
-    } else {
-      alert(result.message);
+    console.log('Registering user:', workerId);
+
+    try {
+      const result = await Backend.register({ name, workerId, pin });
+      console.log('Register result:', result);
+      
+      if (result.success) {
+        alert(result.message);
+        showLoginBtn.click();
+        registerForm.reset();
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error('Register error:', error);
+      alert('❌ Registration failed. Please try again.');
     }
   });
 
   // Login Handler
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log('🔐 Login form submitted');
+    
     const workerId = document.getElementById('login-id').value.trim();
     const pin = document.getElementById('login-pin').value.trim();
 
-    const result = await Backend.login({ workerId, pin });
-    if (result.success) {
-      enterWorkspace(result.session);
-    } else {
-      alert(result.message);
+    console.log('Logging in user:', workerId);
+
+    try {
+      const result = await Backend.login({ workerId, pin });
+      console.log('Login result:', result);
+      
+      if (result.success) {
+        enterWorkspace(result.session);
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('❌ Login failed. Please try again.');
     }
   });
 

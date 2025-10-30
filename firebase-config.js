@@ -1,43 +1,14 @@
 // Firebase Configuration for MedMate
-// Using a demo Firebase project - works out of the box!
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDemoKeyForMedMateHealthApp123456789",
-  authDomain: "medmate-health.firebaseapp.com",
-  projectId: "medmate-health",
-  storageBucket: "medmate-health.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456",
-  databaseURL: "https://medmate-health-default-rtdb.firebaseio.com"
-};
-
-// Initialize Firebase
-let firebaseApp, firebaseAuth, firebaseDb;
+// Disabled for now - using IndexedDB only
 
 const FirebaseDB = {
   initialized: false,
 
   async init() {
-    try {
-      // Initialize Firebase
-      if (!firebase.apps.length) {
-        firebaseApp = firebase.initializeApp(firebaseConfig);
-        firebaseAuth = firebase.auth();
-        firebaseDb = firebase.database();
-        
-        // Enable offline persistence
-        firebaseDb.goOffline();
-        firebaseDb.goOnline();
-        
-        this.initialized = true;
-        console.log('🔥 Firebase initialized successfully!');
-      }
-      return true;
-    } catch (error) {
-      console.warn('⚠️ Firebase not available, using local storage fallback');
-      this.initialized = false;
-      return false;
-    }
+    // Firebase disabled - using IndexedDB fallback
+    console.log('📦 Using IndexedDB (local storage)');
+    this.initialized = false;
+    return false;
   },
 
   // Register new user
