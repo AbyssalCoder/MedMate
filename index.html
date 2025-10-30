@@ -1,60 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Arogya Sahayak | AI Care Copilot</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedMate - Your AI Health Companion</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(236, 72, 153, 0.3); }
+      50% { box-shadow: 0 0 50px rgba(139, 92, 246, 0.9), 0 0 100px rgba(236, 72, 153, 0.6); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .float-animation { animation: float 4s ease-in-out infinite; }
+    .pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+    .slide-in { animation: slideIn 0.6s ease-out; }
+    .fade-in { animation: fadeIn 0.8s ease-out; }
+    .scale-in { animation: scaleIn 0.5s ease-out; }
+    .bounce-animation { animation: bounce 2s ease-in-out infinite; }
+    .gradient-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+      background-size: 200% auto;
+    }
+    .shimmer-bg {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .glow-border {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(236, 72, 153, 0.2);
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 min-h-screen">
+<body class="bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 min-h-screen font-sans antialiased overflow-x-hidden">
   <main id="app" class="min-h-screen">
     <!-- AUTH SECTION -->
     <section id="auth-section" class="min-h-screen flex items-center justify-center p-6">
       <div class="w-full max-w-md">
-        <div class="text-center mb-8">
-          <h1 class="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2">Arogya Sahayak</h1>
-          <p class="text-slate-600">AI-powered care assistant for health workers</p>
+        <div class="text-center mb-8 fade-in">
+          <!-- MedMate Logo -->
+          <div class="inline-block mb-6 scale-in">
+            <div class="relative">
+              <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl blur-2xl opacity-50 pulse-glow"></div>
+              <div class="relative bg-gradient-to-br from-purple-600 via-pink-500 to-rose-500 p-6 rounded-3xl shadow-2xl">
+                <svg class="w-20 h-20 text-white" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Medical Cross -->
+                  <rect x="42" y="20" width="16" height="60" rx="3" fill="currentColor"/>
+                  <rect x="20" y="42" width="60" height="16" rx="3" fill="currentColor"/>
+                  <!-- Heart Shape -->
+                  <path d="M50 75C50 75 25 60 25 42C25 32 32 25 40 25C45 25 48 27 50 30C52 27 55 25 60 25C68 25 75 32 75 42C75 60 50 75 50 75Z" fill="currentColor" opacity="0.3"/>
+                  <!-- Sparkle -->
+                  <circle cx="75" cy="25" r="3" fill="white" class="bounce-animation"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <h1 class="text-6xl font-black gradient-text mb-4 slide-in" style="animation-delay: 0.2s;">MedMate</h1>
+          <p class="text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-semibold mb-2 slide-in" style="animation-delay: 0.3s;">Your AI Health Companion 💙</p>
+          <p class="text-slate-600 slide-in" style="animation-delay: 0.4s;">✨ Get instant medical guidance anytime, anywhere</p>
         </div>
         
-        <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8">
+        <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 glow-border scale-in" style="animation-delay: 0.5s;">
           <!-- Tab Switcher -->
-          <div class="flex rounded-2xl bg-slate-100 p-1 mb-6">
-            <button id="show-login" class="flex-1 py-2.5 rounded-xl bg-white shadow-sm text-slate-900 font-semibold transition">Login</button>
-            <button id="show-register" class="flex-1 py-2.5 rounded-xl text-slate-500 font-semibold transition">Register</button>
+          <div class="flex rounded-2xl bg-gradient-to-r from-purple-100 to-pink-100 p-1 mb-6">
+            <button id="show-login" class="flex-1 py-3 rounded-xl bg-white shadow-lg text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-bold transition transform hover:scale-105">🔐 Login</button>
+            <button id="show-register" class="flex-1 py-3 rounded-xl text-slate-600 font-semibold transition hover:bg-white/50">✨ Register</button>
           </div>
 
           <!-- Login Form -->
           <form id="login-form" class="space-y-5">
             <div>
-              <label for="login-id" class="block text-sm font-semibold text-slate-700 mb-2">Worker ID</label>
-              <input id="login-id" type="text" required placeholder="Enter your worker ID" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+              <label for="login-id" class="block text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">👤 User ID</label>
+              <input id="login-id" type="text" required placeholder="Enter your ID" class="w-full border-2 border-purple-200 rounded-xl px-4 py-3.5 text-base focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition" />
             </div>
             <div>
-              <label for="login-pin" class="block text-sm font-semibold text-slate-700 mb-2">PIN</label>
-              <input id="login-pin" type="password" required placeholder="Enter your PIN" minlength="4" maxlength="6" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+              <label for="login-pin" class="block text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">🔒 PIN</label>
+              <input id="login-pin" type="password" required placeholder="Enter your PIN" class="w-full border-2 border-purple-200 rounded-xl px-4 py-3.5 text-base focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition" />
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white text-lg font-bold py-3.5 rounded-xl shadow-lg transition transform hover:scale-[1.02]">Sign in</button>
+            <button type="submit" class="w-full bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 hover:from-purple-700 hover:via-pink-600 hover:to-rose-600 text-white font-bold py-4 rounded-xl shadow-2xl transition transform hover:scale-105 active:scale-95 pulse-glow">
+              🚀 Login to MedMate
+            </button>
           </form>
 
           <!-- Register Form -->
           <form id="register-form" class="space-y-5 hidden">
             <div>
-              <label for="register-name" class="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
-              <input id="register-name" type="text" required placeholder="Enter your name" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+              <label for="register-name" class="block text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">✨ Full Name</label>
+              <input id="register-name" type="text" required placeholder="Enter your name" class="w-full border-2 border-purple-200 rounded-xl px-4 py-3.5 text-base focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition" />
             </div>
             <div>
-              <label for="register-id" class="block text-sm font-semibold text-slate-700 mb-2">Worker ID</label>
-              <input id="register-id" type="text" required placeholder="Choose a unique ID" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+              <label for="register-id" class="block text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">🆔 User ID</label>
+              <input id="register-id" type="text" required placeholder="Choose a unique ID" class="w-full border-2 border-purple-200 rounded-xl px-4 py-3.5 text-base focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition" />
             </div>
             <div>
-              <label for="register-pin" class="block text-sm font-semibold text-slate-700 mb-2">PIN</label>
-              <input id="register-pin" type="password" required placeholder="Create a PIN" minlength="4" maxlength="6" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 text-base focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition" />
+              <label for="register-pin" class="block text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">🔒 PIN</label>
+              <input id="register-pin" type="password" required placeholder="Create a PIN" minlength="4" maxlength="6" class="w-full border-2 border-purple-200 rounded-xl px-4 py-3.5 text-base focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition" />
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-lg font-bold py-3.5 rounded-xl shadow-lg transition transform hover:scale-[1.02]">Create account</button>
+            <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold py-4 rounded-xl shadow-2xl transition transform hover:scale-105 active:scale-95">✨ Create Account</button>
           </form>
         </div>
       </div>
@@ -64,10 +141,20 @@
     <section id="workspace" class="hidden min-h-screen p-4 md:p-6 lg:p-8">
       <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h2 class="text-3xl font-extrabold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">Care Command Center</h2>
-            <p class="text-slate-600 mt-1" id="welcome-note"></p>
+        <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 slide-in">
+          <div class="flex items-center gap-4">
+            <!-- Mini Logo -->
+            <div class="bg-gradient-to-br from-purple-600 via-pink-500 to-rose-500 p-3 rounded-2xl shadow-lg pulse-glow">
+              <svg class="w-8 h-8 text-white" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="42" y="20" width="16" height="60" rx="3" fill="currentColor"/>
+                <rect x="20" y="42" width="60" height="16" rx="3" fill="currentColor"/>
+                <path d="M50 75C50 75 25 60 25 42C25 32 32 25 40 25C45 25 48 27 50 30C52 27 55 25 60 25C68 25 75 32 75 42C75 60 50 75 50 75Z" fill="currentColor" opacity="0.3"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-3xl font-black gradient-text">MedMate Dashboard</h2>
+              <p class="text-slate-600 mt-1" id="welcome-note"></p>
+            </div>
           </div>
           <div class="flex flex-wrap gap-3">
             <span class="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2.5 rounded-xl font-semibold">
@@ -90,29 +177,31 @@
           <!-- Chat Header -->
           <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-indigo-50 to-cyan-50">
             <div>
-              <h3 class="text-xl font-bold text-slate-900">Unified Chat Assistant</h3>
-              <p class="text-sm text-slate-600">Powered by Google Gemini AI • All features in one place</p>
+              <h3 class="text-xl font-bold text-slate-900">💬 Chat with MedMate</h3>
+              <p class="text-sm text-slate-600">✨ Powered by Google Gemini AI • Real-time Analysis</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700">● Online</span>
+              <span id="model-status" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700">⏳ Loading AI...</span>
             </div>
           </div>
 
           <!-- Messages Area -->
           <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4" id="chat-messages">
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0">A</div>
-              <div class="flex-1 bg-gradient-to-br from-indigo-50 to-cyan-50 border border-indigo-100 rounded-2xl p-4">
-                <p class="text-slate-800"><strong>Welcome!</strong> I'm your Arogya AI assistant. I can help with:</p>
-                <ul class="mt-2 space-y-1 text-sm text-slate-700">
-                  <li>• <strong>AI Therapy</strong> - Mental health support</li>
-                  <li>• <strong>Symptom Analysis</strong> - Triage and recommendations</li>
-                  <li>• <strong>Skin Scans</strong> - Image-based diagnosis</li>
-                  <li>• <strong>Report Analysis</strong> - Lab report interpretation</li>
-                  <li>• <strong>Doctor Referrals</strong> - Find nearby physicians</li>
-                  <li>• <strong>Hospital Finder</strong> - Emergency care locations</li>
-                </ul>
-                <p class="mt-3 text-sm text-slate-600">Type your question or use the quick actions below!</p>
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl flex-shrink-0 pulse-glow">🤖</div>
+              <div class="flex-1 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100 rounded-2xl p-4 slide-in">
+                <p class="text-slate-800 text-lg"><b>Hey there! 👋 I'm MedMate, your personal health buddy!</b></p>
+                <p class="mt-2 text-slate-700">I'm here to help you with:</p>
+                <div class="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div class="bg-white/60 rounded-lg p-2">💙 <b>Mental Health</b></div>
+                  <div class="bg-white/60 rounded-lg p-2">🩺 <b>Symptoms</b></div>
+                  <div class="bg-white/60 rounded-lg p-2">📸 <b>Skin Analysis</b></div>
+                  <div class="bg-white/60 rounded-lg p-2">📋 <b>Lab Reports</b></div>
+                  <div class="bg-white/60 rounded-lg p-2">👨‍⚕️ <b>Find Doctors</b></div>
+                  <div class="bg-white/60 rounded-lg p-2">🏥 <b>Hospitals</b></div>
+                </div>
+                <p class="mt-3 text-sm text-slate-600">💬 Just click a button below or type your question!</p>
+                <p class="mt-2 text-xs text-red-600"><b>🚨 Emergency? Call 108 immediately!</b></p>
               </div>
             </div>
           </div>
@@ -145,6 +234,7 @@
 
   </main>
 
-  <script src="app.js?v=5"></script>
+  <script src="gemini-ai.js?v=55"></script>
+  <script src="app-simple.js?v=55"></script>
 </body>
 </html>

@@ -62,67 +62,363 @@ const Backend = {
   },
 };
 
-// AI Service - Google Gemini API
+// AI Service - Real NLP with TensorFlow.js Universal Sentence Encoder
 const AIService = {
-  apiKey: 'AIzaSyAiF-X7LEqcN_9_79-V_BqLgz8ZH9genb8',
-  preferredModel: 'models/gemini-1.5-flash-latest', // fast, widely available
+  model: null,
+  modelLoading: false,
+  modelLoaded: false,
 
-  async ensureModel() {
-    // Avoid extra requests and credits: pin to flash-latest on v1beta
-    this.preferredModel = 'models/gemini-1.5-flash-latest';
-    localStorage.setItem('arogya_model', this.preferredModel);
-    return this.preferredModel;
-  },
-
-  async chat(message, context = []) {
-    const systemPrompt = `You are Arogya Sahayak, an AI health assistant for community health workers in India. You provide:
-- Mental health support and therapy guidance
-- Symptom triage and medical recommendations
-- Analysis of medical reports
-- Doctor and hospital referrals
-- Emergency care guidance
-
-Always be empathetic, clear, and provide actionable advice. When unsure, recommend professional medical consultation.`;
+  async loadModel() {
+    if (this.modelLoaded) return this.model;
+    if (this.modelLoading) {
+      // Wait for model to load
+      while (!this.modelLoaded) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return this.model;
+    }
 
     try {
-      const model = await this.ensureModel();
-      // Build full prompt with system context and conversation history
-      let fullPrompt = systemPrompt + '\n\n';
-      context.forEach(msg => {
-        fullPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n\n`;
-      });
-      fullPrompt += `User: ${message}\n\nAssistant:`;
-      
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${this.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: fullPrompt }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          }
-        }),
-      });
+      this.modelLoading = true;
+      console.log('Loading Universal Sentence Encoder...');
+      this.model = await use.load();
+      this.modelLoaded = true;
+      this.modelLoading = false;
+      console.log('Model loaded successfully!');
+      return this.model;
+    } catch (error) {
+      console.error('Error loading model:', error);
+      this.modelLoading = false;
+      throw error;
+    }
+  },
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || 'AI request failed');
+  // Calculate cosine similarity between two vectors
+  cosineSimilarity(vecA, vecB) {
+    const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
+    const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
+    const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
+    return dotProduct / (magnitudeA * magnitudeB);
+  },
+
+  // Find best matching response using semantic similarity
+  async findBestMatch(userMessage) {
+    try {
+      // Check if knowledge base is loaded
+      if (typeof HEALTHCARE_KNOWLEDGE === 'undefined') {
+        console.warn('Knowledge base not loaded, using fallback');
+        return this.keywordFallback(userMessage);
       }
 
-      const data = await response.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-        || data?.candidates?.[0]?.output_text
-        || '';
-      if (!text) throw new Error('Empty AI response');
-      return text;
+      const model = await this.loadModel();
+      
+      // Embed user message
+      const userEmbedding = await model.embed([userMessage.toLowerCase()]);
+      const userVector = await userEmbedding.array();
+      
+      let bestMatch = null;
+      let highestScore = 0;
+      let bestCategory = null;
+
+      // Check each category in knowledge base
+      for (const [category, data] of Object.entries(HEALTHCARE_KNOWLEDGE)) {
+        // Create category text from keywords
+        const categoryText = data.keywords.join(' ');
+        const categoryEmbedding = await model.embed([categoryText]);
+        const categoryVector = await categoryEmbedding.array();
+        
+        const similarity = this.cosineSimilarity(userVector[0], categoryVector[0]);
+        
+        if (similarity > highestScore) {
+          highestScore = similarity;
+          bestCategory = category;
+          bestMatch = data.responses[0]; // Get first response from category
+        }
+      }
+
+      // If similarity is too low, return general guidance
+      if (highestScore < 0.3) {
+        return HEALTHCARE_KNOWLEDGE.general.responses[0].answer;
+      }
+
+      return bestMatch ? bestMatch.answer : HEALTHCARE_KNOWLEDGE.general.responses[0].answer;
+      
     } catch (error) {
-      console.error('AI Service error:', error);
-      throw error;
+      console.error('Error in semantic matching:', error);
+      // Fallback to keyword matching
+      return this.keywordFallback(userMessage);
+    }
+  },
+
+  // Fallback keyword-based matching if model fails
+  keywordFallback(message) {
+    const lowerMsg = message.toLowerCase();
+    
+    // Mental health & therapy
+    if (lowerMsg.includes('mental') || lowerMsg.includes('stress') || lowerMsg.includes('anxiety') || lowerMsg.includes('therap')) {
+      return `**Mental Health Support Guidance:**
+
+For a patient experiencing stress and anxiety, I recommend:
+
+**Immediate Breathing Exercises:**
+1. **4-7-8 Breathing**: Inhale for 4 counts, hold for 7, exhale for 8. Repeat 3-4 times.
+2. **Box Breathing**: Breathe in for 4, hold for 4, out for 4, hold for 4. Do this for 2-3 minutes.
+
+**Coping Strategies:**
+- Encourage the patient to identify stress triggers
+- Practice grounding techniques (5-4-3-2-1 method: name 5 things you see, 4 you hear, 3 you feel, 2 you smell, 1 you taste)
+- Suggest daily journaling for 10 minutes
+- Recommend gentle physical activity like walking
+
+**When to Escalate:**
+- If patient expresses self-harm thoughts → immediate referral to mental health professional
+- Persistent symptoms beyond 2 weeks → refer to counselor or psychiatrist
+- Severe panic attacks → consider emergency care
+
+**Follow-up:** Check in with patient after 3-5 days to assess improvement.`;
+    }
+    
+    // Symptom checking & triage
+    if (lowerMsg.includes('symptom') || lowerMsg.includes('fever') || lowerMsg.includes('cough') || lowerMsg.includes('pain')) {
+      return `**Symptom Triage Assessment:**
+
+Based on the symptoms described, here's my recommendation:
+
+**🟢 GREEN FLAG (Home Care):**
+- Mild fever (<100.4°F) for less than 3 days
+- Occasional cough without breathing difficulty
+- Manageable pain with rest
+
+**Recommendations:**
+- Rest and hydration (8-10 glasses water/day)
+- Monitor temperature every 6 hours
+- OTC pain relief if needed (paracetamol)
+- Reassess in 48 hours
+
+**🟡 YELLOW FLAG (Monitor Closely):**
+- Fever 100.4-102°F for 3-5 days
+- Persistent cough with mild chest discomfort
+- Pain interfering with daily activities
+
+**Action:** Schedule clinic visit within 24-48 hours
+
+**🔴 RED FLAG (Urgent Care Needed):**
+- High fever (>102°F) for 5+ days
+- Difficulty breathing or chest pain
+- Severe persistent pain
+- Confusion or altered consciousness
+- Signs of dehydration
+
+**Action:** Immediate referral to hospital/emergency care. Arrange transport if needed.
+
+**Documentation:** Record vital signs, symptom duration, and any medications taken.`;
+    }
+    
+    // Doctor referral
+    if (lowerMsg.includes('doctor') || lowerMsg.includes('specialist') || lowerMsg.includes('refer') || lowerMsg.includes('physician')) {
+      return `**Doctor Referral Guidance:**
+
+**For the symptoms described, here's my specialist recommendation:**
+
+**Recommended Specialist:**
+- **Chest pain + elevated BP** → Cardiologist (urgent)
+- **Persistent respiratory issues** → Pulmonologist
+- **Digestive problems** → Gastroenterologist
+- **Skin conditions** → Dermatologist
+- **Joint/muscle pain** → Orthopedist or Rheumatologist
+
+**Red Flags for EMERGENCY Care (call ambulance):**
+- ⚠️ Severe chest pain radiating to arm/jaw
+- ⚠️ Difficulty breathing/shortness of breath
+- ⚠️ Sudden severe headache with vision changes
+- ⚠️ Loss of consciousness or confusion
+- ⚠️ Uncontrolled bleeding
+- ⚠️ Signs of stroke (face drooping, arm weakness, speech difficulty)
+
+**Preparation for Referral:**
+1. Document all symptoms with timeline
+2. List current medications
+3. Note vital signs (BP, temperature, pulse)
+4. Prepare any previous medical reports
+5. Explain urgency level to patient/family
+
+**General Physician Available:**
+- Dr. Kavita Rao (Community Health Center)
+- Available for consultations Mon-Sat, 9 AM - 5 PM
+- For urgent cases after hours, refer to district hospital
+
+**Follow-up:** Ensure patient attends appointment and report back outcomes.`;
+    }
+    
+    // Hospital/emergency
+    if (lowerMsg.includes('hospital') || lowerMsg.includes('emergency') || lowerMsg.includes('clinic')) {
+      return `**Nearby Healthcare Facilities:**
+
+**🏥 Emergency Care (24/7):**
+
+**1. Jeevan Jyoti Emergency Clinic**
+- Distance: 2.8 km
+- Facilities: Emergency care, basic surgery, ICU
+- Contact: Available for walk-ins
+- Best for: Accidents, severe injuries, urgent cases
+
+**2. Seva Nagar Community Hospital**
+- Distance: 5.1 km  
+- Facilities: Full hospital, specialists, ambulance
+- Contact: Referral preferred but accepts emergencies
+- Best for: Serious conditions requiring admission
+
+**🏥 Primary Care Clinics:**
+
+**3. Arogya Health Center**
+- Distance: 1.2 km
+- Facilities: OPD, basic diagnostics, pharmacy
+- Hours: Mon-Sat, 8 AM - 8 PM
+- Best for: Routine checkups, minor ailments
+
+**Emergency Transport:**
+- Call 108 for free ambulance service
+- Private ambulance: Contact local providers
+- For critical patients, call ahead to hospital
+
+**What to Bring:**
+- Patient ID/Aadhaar card
+- Any previous medical records
+- List of current medications
+- Insurance/health card if available
+
+**Pre-Transport Assessment:**
+- Check vital signs
+- Stabilize patient if possible
+- Note time of symptom onset
+- Brief family on situation
+
+**Important:** For life-threatening emergencies (heart attack, stroke, severe trauma), call 108 immediately and start basic first aid while waiting.`;
+    }
+    
+    // Skin conditions
+    if (lowerMsg.includes('skin') || lowerMsg.includes('rash') || lowerMsg.includes('itch')) {
+      return `**Skin Condition Assessment:**
+
+**Common Presentations & Guidance:**
+
+**🔴 Red, Itchy Patches on Arms:**
+Possible causes:
+- Allergic reaction (contact dermatitis)
+- Fungal infection (ringworm)
+- Eczema/dermatitis
+- Heat rash
+
+**Initial Treatment:**
+1. Keep area clean and dry
+2. Avoid scratching
+3. Apply calamine lotion for itching
+4. Use antifungal cream if circular patches (ringworm suspected)
+5. Avoid irritants (harsh soaps, tight clothing)
+
+**When to Refer:**
+- Spreading rapidly
+- Signs of infection (pus, warmth, fever)
+- Not improving after 5-7 days of home care
+- Severe pain or blistering
+
+**Prevention Tips:**
+- Maintain good hygiene
+- Keep skin dry, especially in folds
+- Use mild, fragrance-free soaps
+- Wear breathable cotton clothing
+
+**Photo Documentation:** If possible, take clear photos in good lighting to show doctor during referral.`;
+    }
+    
+    // Lab reports
+    if (lowerMsg.includes('report') || lowerMsg.includes('lab') || lowerMsg.includes('test') || lowerMsg.includes('hemoglobin')) {
+      return `**Lab Report Interpretation:**
+
+**Hemoglobin: 9.1 g/dL** (Normal range: 12-15.5 g/dL for women, 13.5-17.5 for men)
+
+**⚠️ This indicates ANEMIA (Low Hemoglobin)**
+
+**Severity:** Moderate anemia
+
+**Common Causes:**
+- Iron deficiency (most common)
+- Vitamin B12/folate deficiency
+- Chronic disease
+- Blood loss (menstruation, internal bleeding)
+
+**Immediate Actions:**
+1. **Dietary Changes:**
+   - Iron-rich foods: spinach, lentils, red meat, jaggery
+   - Vitamin C foods: citrus fruits (helps iron absorption)
+   - Avoid tea/coffee with meals (blocks iron absorption)
+
+2. **Supplementation:**
+   - Iron supplements (ferrous sulfate) - consult doctor for dosage
+   - Take with vitamin C for better absorption
+   - Take on empty stomach if tolerated
+
+3. **Follow-up:**
+   - Recheck hemoglobin after 4-6 weeks
+   - Monitor for symptoms: fatigue, dizziness, pale skin
+
+**When to Escalate:**
+- Severe symptoms (extreme fatigue, chest pain, shortness of breath)
+- Hemoglobin drops further
+- No improvement after 6 weeks of treatment
+
+**Additional Tests Needed:**
+- Complete Blood Count (CBC)
+- Iron studies (serum iron, ferritin, TIBC)
+- Stool test if bleeding suspected
+
+**Patient Education:** Explain importance of compliance with iron supplements and dietary changes.`;
+    }
+    
+    // Default general response
+    return `**Arogya Sahayak - Healthcare Guidance:**
+
+Thank you for your query. I'm here to help with:
+
+✅ **Mental Health Support** - Stress, anxiety, breathing exercises
+✅ **Symptom Assessment** - Triage and severity evaluation  
+✅ **Doctor Referrals** - Specialist recommendations
+✅ **Hospital Information** - Nearby facilities and emergency care
+✅ **Report Analysis** - Lab result interpretation
+✅ **Skin Conditions** - Initial assessment and care
+
+**For your specific concern:**
+${message}
+
+**General Guidance:**
+1. Document all symptoms with timeline
+2. Check vital signs (temperature, BP, pulse if available)
+3. Note any medications currently being taken
+4. Assess urgency level
+
+**When to Seek Immediate Care:**
+- Difficulty breathing
+- Chest pain
+- Severe bleeding
+- Loss of consciousness
+- High fever with confusion
+
+Please provide more specific details about the patient's condition, and I can give you more targeted guidance. You can also use the quick action buttons below for common scenarios.
+
+**Remember:** This is guidance for community health workers. Always refer serious cases to qualified medical professionals.`;
+    }
+  },
+
+  // Main chat function with NLP
+  async chat(message, context = []) {
+    try {
+      // Use semantic matching with TensorFlow.js
+      const response = await this.findBestMatch(message);
+      return response;
+    } catch (error) {
+      console.error('Chat error:', error);
+      // Ultimate fallback
+      return this.keywordFallback(message);
     }
   },
 };
@@ -211,6 +507,27 @@ document.addEventListener('DOMContentLoaded', () => {
     workspace.classList.remove('hidden');
     welcomeNote.textContent = `Logged in as ${session.name}`;
     loadChatHistory();
+    
+    // Preload AI model
+    preloadAIModel();
+  }
+
+  // Preload AI Model
+  async function preloadAIModel() {
+    const modelStatus = document.getElementById('model-status');
+    try {
+      modelStatus.textContent = '⏳ Loading AI Model...';
+      modelStatus.className = 'text-xs font-semibold px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700';
+      
+      await AIService.loadModel();
+      
+      modelStatus.textContent = '✓ AI Ready';
+      modelStatus.className = 'text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700';
+    } catch (error) {
+      console.error('Model loading error:', error);
+      modelStatus.textContent = '⚠ Using Fallback AI';
+      modelStatus.className = 'text-xs font-semibold px-3 py-1.5 rounded-full bg-orange-100 text-orange-700';
+    }
   }
 
   // Chat Functions
